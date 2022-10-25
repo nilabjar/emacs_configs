@@ -17,6 +17,7 @@
 	helm-xref
 	dap-mode
 	evil
+    magit
 	)
       )
 
@@ -56,6 +57,7 @@
 
 ;; Enable Evil
 (setq evil-disable-insert-state-bindings t)
+;;(setq evil-default-state 'emacs)
 (require 'evil)
 (evil-mode 1)
 
@@ -78,3 +80,9 @@
 
 ;; auto close bracket insertion. New in emacs 24
 (electric-pair-mode 1)
+
+;; read shell history from bash_history
+(add-hook 'shell-mode-hook 'my-shell-mode-hook)
+(defun my-shell-mode-hook ()
+(setq comint-input-ring-file-name "~/.bash_history")  ;; or bash_history
+(comint-read-input-ring t))
