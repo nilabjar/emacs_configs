@@ -17,9 +17,11 @@
 	helm-xref
 	dap-mode
 	evil
-    magit
+        magit
+        deadgrep
+        doom-themes
 	)
-      )
+)
 
 (when (cl-find-if-not #'package-installed-p package-selected-packages)
   (package-refresh-contents)
@@ -86,3 +88,6 @@
 (defun my-shell-mode-hook ()
 (setq comint-input-ring-file-name "~/.bash_history")  ;; or bash_history
 (comint-read-input-ring t))
+
+;; enable auto revert
+(setq global-auto-revert-mode t)
