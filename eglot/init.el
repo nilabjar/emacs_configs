@@ -34,6 +34,13 @@
   :init
   (savehist-mode))
 
+(use-package consult
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :bind (
+        ("C-x b" . consult-buffer)  ;; orig. switch-to-buffer
+  )
+)
+
 (recentf-mode)
 
 (load-theme 'wombat t)
@@ -71,7 +78,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(use-package eglot company which-key magit vertico evil)))
+ '(package-selected-packages
+   '(consult use-package eglot company which-key magit vertico evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
