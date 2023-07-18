@@ -6,10 +6,7 @@
 
 (setq package-selected-packages
       '(
-	    company
-	    which-key
-        magit
-        evil
+        ;; insert packages here
 	    ))
 
 (when (cl-find-if-not #'package-installed-p package-selected-packages)
@@ -22,6 +19,21 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
+
+(use-package evil
+  :init
+  (setq evil-disable-insert-state-bindings t)
+  (evil-mode))
+
+(use-package magit)
+
+(use-package which-key
+  :init
+  (which-key-mode))
+
+(use-package company
+  :hook
+  (after-init . global-company-mode))
 
 (use-package eglot
   :hook ((c++-mode python-mode) . eglot-ensure))
@@ -45,12 +57,6 @@
 
 (load-theme 'wombat t)
 
-;; company mode
-(add-hook 'after-init-hook 'global-company-mode)
-
-(which-key-mode)
-
-
 ;;C++ language settings
 (setq c-default-style
       '((java-mode . "java") (other . "gnu")))
@@ -66,12 +72,6 @@
 
 ;; auto close bracket insertion. New in emacs 24
 (electric-pair-mode 1)
-
-;; Enable Evil
-(setq evil-disable-insert-state-bindings t)
-;;(setq evil-default-state 'emacs)
-(require 'evil)
-(evil-mode)
 
 ;; Line Number Mode
 (column-number-mode)
