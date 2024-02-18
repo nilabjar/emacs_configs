@@ -35,8 +35,12 @@
   :hook
   (after-init . global-company-mode))
 
-(use-package eglot
-  :hook ((c++-mode python-mode) . eglot-ensure))
+;; (use-package eglot
+;;   :hook ((c++-mode python-mode) . eglot-ensure))
+
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
 
 (use-package vertico
   :init
@@ -147,6 +151,8 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+(setq lsp-pyright-multi-root nil)
+
 (use-package pyvenv
   :ensure t
   :init
@@ -160,12 +166,105 @@
     (ansi-color-apply-on-region (point-min) (point-max))))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("s-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map)))
+
+
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (python-mode . lsp)
+         (c++-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
+
+;; optionally
+(use-package lsp-ui :commands lsp-ui-mode)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+(use-package git-link)
+
+(use-package python-black
+  :demand t
+  :after python
+  :hook (python-mode . python-black-on-save-mode-enable-dwim))
+
+(eval-after-load 'git-link
+ '(progn
+   (add-to-list 'git-link-remote-alist
+     '("bbgithub" git-link-github))
+   (add-to-list 'git-link-commit-remote-alist
+     '("bbgithub\\.dev\\.bloomberg\\.com" git-link-commit-github))))
+
+;;========== Space leader keys ========================
+(use-package general
+  :config
+  (general-evil-setup t)
+
+  (general-create-definer rune/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC"))
+
+(rune/leader-keys
+  "t"  '(:ignore t :which-key "toggles")
+  "tt" '(counsel-load-theme :which-key "choose theme")
+
+  "p"  '(:ignore p :which-key "project")
+  "pc" '(projectile-compile-project :which-key "project compile")
+  "pt" '(counsel-etags-find-tag-at-point :which-key "find tags")
+  "pf" '(projectile-find-file :which-key "find file in project")
+
+  "f"  '(:ignore f :which-key "file")
+  "ft" '(counsel-etags-list-tag-in-current-file :which-key "list tags in file")
+
+  "g"  '(:ignore f :which-key "global")
+  "gh" '(highlight-symbol-at-point :which-key "highlight point")
+  "gu" '(unhighlight-regexp :which-key "unhighlight phrase")
+
+  "*" '(consult-ripgrep :which-key "search project")
+)
+;;==================================================
+
+;;========== Opengrok ==============================
+(use-package eopengrok)
+(require 'eopengrok)
+;;==================================================
+
+;;========== diff-hl ==============================
+(use-package diff-hl)
+(global-diff-hl-mode)
+;;==================================================
+
+;;========== deadgrep ==============================
+(use-package deadgrep)
+(global-set-key (kbd "<f5>") #'deadgrep)
+;;==================================================
+
+(setq completion-at-point-functions '(elisp-completion-at-point comint-dynamic-complete-filename t))
+
 ;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(column-number-mode t)
+ '(global-display-line-numbers-mode t)
  '(package-selected-packages
    '(consult use-package eglot company which-key magit vertico evil))
  '(python-shell-interpreter "python3.11"))
