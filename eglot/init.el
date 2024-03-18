@@ -13,12 +13,17 @@
   (package-refresh-contents)
   (mapc #'package-install package-selected-packages))
 
+
+(setq package-install-upgrade-built-in t)
+
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
    (package-install 'use-package))
 
 (require 'use-package)
 (setq use-package-always-ensure t)
+
+(xterm-mouse-mode)
 
 (use-package evil
   :init
@@ -246,8 +251,14 @@
 ;;==================================================
 
 ;;========== diff-hl ==============================
-(use-package diff-hl)
-(global-diff-hl-mode)
+(use-package diff-hl
+  :ensure t
+  :hook
+  (dired-mode . diff-hl-dired-mode)
+  :config
+  (global-diff-hl-mode t)
+  (diff-hl-margin-mode t)
+)
 ;;==================================================
 
 ;;========== deadgrep ==============================
@@ -265,8 +276,7 @@
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
  '(global-display-line-numbers-mode t)
- '(package-selected-packages
-   '(consult use-package eglot company which-key magit vertico evil))
+ '(package-selected-packages '(consult use-package eglot company which-key vertico evil))
  '(python-shell-interpreter "python3.11"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
