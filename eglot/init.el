@@ -25,6 +25,9 @@
 
 (xterm-mouse-mode)
 
+(use-package doom-themes
+  :init (load-theme 'doom-dracula t))
+
 (use-package evil
   :init
   (setq evil-disable-insert-state-bindings t)
@@ -38,7 +41,11 @@
 
 (use-package company
   :hook
-  (after-init . global-company-mode))
+  (after-init . global-company-mode)
+  :custom
+  (company-idle-delay 0.0)
+  (company-minimum-prefix-length 1)
+)
 
 ;; (use-package eglot
 ;;   :hook ((c++-mode python-mode) . eglot-ensure))
@@ -275,6 +282,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
+ '(custom-safe-themes
+   '("8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" default))
  '(global-display-line-numbers-mode t)
  '(package-selected-packages '(consult use-package eglot company which-key vertico evil))
  '(python-shell-interpreter "python3.11"))
