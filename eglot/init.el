@@ -196,6 +196,8 @@
          (c++-mode . lsp)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
+  :config
+  (setq lsp-clients-clangd-args '("--completion-style=detailed"))
   :commands lsp)
 
 (use-package lsp-pyright
@@ -272,6 +274,96 @@
 (use-package deadgrep)
 (global-set-key (kbd "<f5>") #'deadgrep)
 ;;==================================================
+
+;;========== context menu ==============================
+(add-hook 'text-mode-hook 'context-menu-mode)
+(add-hook 'prog-mode-hook 'context-menu-mode)
+(add-hook 'shell-mode-hook 'context-menu-mode)
+(add-hook 'dired-mode-hook 'context-menu-mode)
+
+
+(defun cc/context-menu-addons (menu click)
+  "CC context menu additions"
+  (save-excursion
+    (mouse-set-point click)
+    (define-key-after menu [find-tags]
+      '(menu-item "Find Tags" counsel-etags-find-tag-at-point
+                  :help "Find tags at point"))
+
+    (define-key-after menu [highlight-word]
+      '(menu-item "Highlight Word" highlight-symbol-at-point
+                  :help "Highlight word"))
+
+    (define-key-after menu [tags-in-file]
+      '(menu-item "Tags In File" counsel-etags-list-tag-in-current-file
+                  :help "Tags In File"))
+
+    (define-key-after menu [un-highlight-word]
+      '(menu-item "Un-Highlight" unhighlight-regexp
+                  :help "Un-Highlight"))
+
+    (when (region-active-p)
+      (define-key-after menu [osx-dictionary-lookup]
+        '(menu-item "Look up" osx-dictionary-search-word-at-point
+                    :help "Look up in dictionary"))
+
+      (define-key-after menu [occur-word-at-mouse]
+        '(menu-item "Occur" occur-word-at-mouse
+                    :help "Occur")))
+
+    (when (and (bound-and-true-p buffer-file-name)
+               (vc-registered (buffer-file-name)))
+      (define-key-after menu [vc-separator]
+        '(menu-item "--single-line"))
+
+      (define-key-after menu [magit-status]
+        '(menu-item "Magit Status" magit-status
+                    :help "Magit Status"))
+      (define-key-after menu [ediff-revision]
+        '(menu-item "Ediff revision…" cc/ediff-revision
+                    :help "Ediff this file with revision")))
+
+    (when (region-active-p)
+      (define-key-after menu [transform-text-separator]
+        '(menu-item "--single-line"))
+      (define-key-after menu [tranform-text]
+        (list 'menu-item "Transform" cc/transform-text-menu)))
+
+    (when (and (derived-mode-p 'org-mode) (region-active-p))
+      (define-key-after menu [org-emphasize]
+        (list 'menu-item "Org Emphasize" cc/org-emphasize-menu))
+
+      (define-key-after menu [org-export-to-slack]
+        '(menu-item "Copy as Slack" org-slack-export-to-clipboard-as-slack
+                    :help "Copy as Slack to clipboard"))
+
+      (define-key-after menu [copy-as-rtf]
+        '(menu-item "Copy as RTF" dm/copy-as-rtf
+                    :help "Copy as RTF to clipboard")))
+
+    (when (region-active-p)
+      (define-key-after menu [google-search]
+        '(menu-item "Search with Google" google-this-noconfirm
+                    :help "Search Google with region"))))
+    menu)
+
+;; hook into context menu
+(add-hook 'context-menu-functions #'cc/context-menu-addons)
+
+(with-eval-after-load 'lsp-mode
+  (define-key lsp-mode-map (kbd "<mouse-3>") nil))
+
+(global-set-key (kbd "S-<down-mouse-3>") #'lsp-mouse-click)
+
+;;==================================================
+;; Show the current function name in the header line
+;;==================================================
+
+(which-function-mode)
+
+;;==================================================
+;;==================================================
+
 
 (setq completion-at-point-functions '(elisp-completion-at-point comint-dynamic-complete-filename t))
 
