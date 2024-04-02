@@ -71,7 +71,7 @@
 
 (recentf-mode)
 
-(load-theme 'wombat t)
+(global-auto-revert-mode t)
 
 ;;C++ language settings
 (setq c-default-style
@@ -163,8 +163,6 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-(setq lsp-pyright-multi-root nil)
-
 (use-package pyvenv
   :ensure t
   :init
@@ -186,6 +184,9 @@
               ("s-p" . projectile-command-map)
               ("C-c p" . projectile-command-map)))
 
+;; (use-package ccls
+;;   :hook ((c-mode c++-mode objc-mode cuda-mode) .
+;;          (lambda () (require 'ccls) (lsp))))
 
 (use-package lsp-mode
   :init
@@ -262,11 +263,11 @@
 ;;========== diff-hl ==============================
 (use-package diff-hl
   :ensure t
-  :hook
-  (dired-mode . diff-hl-dired-mode)
-  :config
+  :init
   (global-diff-hl-mode t)
   (diff-hl-margin-mode t)
+  :hook
+  (dired-mode . diff-hl-dired-mode)
 )
 ;;==================================================
 
@@ -362,6 +363,12 @@
 (which-function-mode)
 
 ;;==================================================
+;; Enable SR-SPEEDBAR
+;;==================================================
+
+(use-package sr-speedbar
+  :ensure t)
+
 ;;==================================================
 
 
@@ -375,7 +382,7 @@
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
  '(custom-safe-themes
-   '("8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" default))
+   '("88f7ee5594021c60a4a6a1c275614103de8c1435d6d08cc58882f920e0cec65e" "8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" default))
  '(global-display-line-numbers-mode t)
  '(package-selected-packages '(consult use-package eglot company which-key vertico evil))
  '(python-shell-interpreter "python3.11"))
