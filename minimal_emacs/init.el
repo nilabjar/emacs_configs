@@ -5,7 +5,6 @@
 (setq package-selected-packages
       '(
 	company
-	elpy
 	evil
 	)
       )
