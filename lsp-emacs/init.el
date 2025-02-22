@@ -43,6 +43,15 @@
   :ensure t
   :commands (projectile-mode))
 
+(use-package sr-speedbar
+  :ensure t
+  :config
+  (setq sr-speedbar-auto-refresh nil)
+  (setq sr-speedbar-right-side nil))
+
+(use-package ace-window
+  :ensure t
+  :bind ("M-o" . ace-window))
 
 ;; (add-hook 'after-init-hook
 ;; 	  (lambda ()
@@ -54,11 +63,15 @@
   :commands (load-theme))
 
 (use-package evil
-  :config
+  :init
   (setq evil-disable-insert-state-bindings t)
+  :config
   (evil-mode)
   (evil-set-initial-state 'magit-popup-mode 'emacs)
   (evil-set-initial-state 'compilation-mode 'emacs)
+  (evil-set-initial-state 'shell-mode 'emacs)
+  (evil-set-initial-state 'eshell-mode 'emacs)
+  (evil-set-initial-state 'speedbar-mode 'emacs)
   :hook (prog-mode text-mode)
   :commands (evil-emacs-state))
 
@@ -81,14 +94,13 @@
 
 (use-package diff-hl
   :ensure t
-  :defer t
   :init
   :config
   (global-diff-hl-mode)
   (diff-hl-dired-mode)
   (diff-hl-margin-mode)
   :commands (diff-hl-mode)
-  :hook (prog-mode))
+  :hook (prog-mode text-mode))
 
 (use-package deadgrep
   :ensure t
@@ -102,6 +114,7 @@
 (use-package company
   :hook
   (after-init . global-company-mode)
+  (shell-mode . (lambda() (company-mode 0)))
   )
 
 (use-package lsp-mode
@@ -118,7 +131,7 @@
   :commands lsp)
 
 ;; optionally
-(use-package lsp-ui :commands lsp-ui-mode)
+;; (use-package lsp-ui :ensure t :commands lsp-ui-mode)
 ;; if you are helm user
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 
@@ -177,6 +190,26 @@
 (use-package helm-xref
   :ensure t
   :after (helm))
+
+(use-package git-link
+  :ensure t
+  :config
+  '(progn
+     (add-to-list 'git-link-remote-alist
+                  '("bbgithub" git-link-github))
+     (add-to-list 'git-link-commit-remote-alist
+                  '("bbgithub\\.dev\\.bloomberg\\.com" git-link-commit-github)))
+  )
+
+;; (eval-after-load 'git-link
+;;  '(progn
+;;    (add-to-list 'git-link-remote-alist
+;;      '("bbgithub" git-link-github))
+;;    (add-to-list 'git-link-commit-remote-alist
+;;      '("bbgithub\\.dev\\.bloomberg\\.com" git-link-commit-github))))
+
+
+
 ;; ;
 ;;                                         ; (helm-mode)
 ;; ;; (require 'helm-xref)
@@ -249,9 +282,9 @@
   :demand t
   :config
   (general-define-key
-   :states '(normal visual insert emacs)
+   :states '(normal visual insert)
    :prefix "SPC"
-   :non-normal-prefix "C-SPC"
+   :non-normal-prefix "C-f"
 
    "p"  '(:ignore p :which-key "project")
    "pc" '(projectile-compile-project :which-key "project compile")
@@ -263,10 +296,13 @@
    "fe" '(sr-speedbar-toggle :which-key "speedbar-toggle")
    "fs" '(ff-get-other-file  :which-key "switch header/source")
    "fo" '(helm-find-files  :which-key "open file")
+   "fe" '(sr-speedbar-toggle :which-key "speedbar")
 
    "b"  '(:ignore f :which-key "buffer")
    "bo" '(evil-buffer :which-key "other buffer")
    "bb" '(helm-mini :which-key "other buffer")
+   "bd" '(kill-buffer :which-key "kill buffer")
+   "bf" '(delete-other-windows :which-key "Fullscreen buffer")
 
    "h" '(:ignore fh :which-key "hunks")
    "hn" '(diff-hl-next-hunk  :which-key "next hunk")
@@ -373,7 +409,7 @@
    '("014cb63097fc7dbda3edf53eb09802237961cbb4c9e9abd705f23b86511b0a69" "e8bd9bbf6506afca133125b0be48b1f033b1c8647c628652ab7a2fe065c10ef0" "8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" "48042425e84cd92184837e01d0b4fe9f912d875c43021c3bcb7eeb51f1be5710" "88f7ee5594021c60a4a6a1c275614103de8c1435d6d08cc58882f920e0cec65e" default))
  '(nil nil t)
  '(package-selected-packages
-   '(dape esup general lsp-pyright lsp-mode yasnippet lsp-treemacs helm-lsp projectile hydra flycheck company avy which-key helm-xref dap-mode evil magit deadgrep doom-themes pyvenv python-black)))
+   '(sr-speedbar git-link dape esup general lsp-pyright lsp-mode yasnippet lsp-treemacs helm-lsp projectile hydra flycheck company avy which-key helm-xref dap-mode evil magit deadgrep doom-themes pyvenv python-black)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
