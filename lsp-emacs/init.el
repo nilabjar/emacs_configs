@@ -203,7 +203,27 @@
 ;;   :commands (avy-goto-word-1)
 ;;   )
 
-(load-file "~/my_bigstore/alternate_home/emacs_configs/test_lsp/helm.el")
+;; (load-file "~/my_bigstore/alternate_home/emacs_configs/test_lsp/helm.el")
+
+(use-package helm
+  :defer t
+  :commands (helm-mini)
+  :bind (("M-x" . helm-M-x)
+         ("C-x b" . helm-mini)
+         ("C-x C-f" . helm-find-files)
+         ("C-x C-d" . helm-browse-project)
+         ("M-y" . helm-show-kill-ring))
+  :config  (helm-mode 1)
+  (setq helm-M-x-fuzzy-match 1)
+  (setq helm-buffers-fuzzy-matching 1)
+  (setq helm-recentf-fuzzy-match 1)
+  ;; Set buffer list column size to max length
+  (setq helm-buffer-max-length nil)
+  )
+
+(use-package helm-xref
+  :ensure t
+  :after (helm))
 
 (use-package git-link
   :ensure t
