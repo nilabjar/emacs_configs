@@ -8,7 +8,15 @@
 (xterm-mouse-mode)
 (setq mouse-wheel-scroll-amount '(3))
 ;; (setq use-package-always-defer t)
-(load-theme 'wombat)
+;; (load-theme 'wombat)
+
+;; for fast emacs
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(global-hl-line-mode -1)
+(blink-cursor-mode -1)
+(setq redisplay-dont-pause t) ;; Optional, improves responsiveness
 
 (use-package hydra :ensure t)
 (use-package flycheck :ensure t)
@@ -38,7 +46,23 @@
 
 (use-package ace-window
   :ensure t
-  :bind ("M-o" . ace-window))
+  :bind ("M-o" . ace-window)
+  :custom
+  (aw-keys '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+  (aw-dispatch-always t)
+  :config
+  (set-face-attribute 'aw-leading-char-face nil
+                      :foreground "deep sky blue"
+                      :weight 'bold
+                      :height 400
+                      :family "Fira Code")
+  (set-face-attribute 'aw-background-face nil
+                      :foreground "gray40"))
+
+  ;; Optional: dim the other windows slightly
+  ;; (set-face-attribute 'aw-background-face nil
+  ;;                     :foreground "gray40"
+  ;;                     :height 200))
 
 ;; (add-hook 'after-init-hook
 ;; 	  (lambda ()
@@ -46,9 +70,9 @@
 
 (use-package doom-themes :ensure t)
 
-(use-package doom-modeline
-  :ensure t
-  :hook (after-init . doom-modeline-mode))
+;; (use-package doom-modeline
+;;   :ensure t
+;;   :hook (after-init . doom-modeline-mode))
 
 (use-package magit
   :ensure t
@@ -88,11 +112,11 @@
   :ensure t
   :hook (prog-mode text-mode))
 
-(use-package evil-snipe
-  :ensure t
-  :config
-  (setq evil-snipe-scope 'whole-buffer)
-  :hook (prog-mode text-mode))
+;; (use-package evil-snipe
+;;   :ensure t
+;;   :config
+;;   (setq evil-snipe-scope 'whole-buffer)
+;;   :hook (prog-mode text-mode))
 
 (use-package evil-surround
   :ensure t
@@ -198,11 +222,6 @@
 
 ;; sample `helm' configuration use https://github.com/emacs-helm/helm/ for details
 
-;; (use-package avy :ensure t
-;;   :config
-;;   :commands (avy-goto-word-1)
-;;   )
-
 ;; (load-file "~/my_bigstore/alternate_home/emacs_configs/test_lsp/helm.el")
 
 (use-package helm
@@ -224,7 +243,6 @@
 (use-package helm-xref
   :ensure t
   :after (helm))
-
 (use-package git-link
   :ensure t
   :config
@@ -272,8 +290,12 @@
 (comint-read-input-ring t))
 
 ;; enable auto revert
-(setq global-auto-revert-mode t)
+(setq global-auto-revert-non-file-buffers t
+      auto-revert-verbose nil
+      auto-revert-interval 1
+      auto-revert-use-notify t)
 
+(add-hook 'after-init-hook #'global-auto-revert-mode)
 
 ;; ====================================
 ;; Change FONT size interactively
@@ -289,6 +311,14 @@
 (use-package general :ensure t
   :demand t
   :config
+
+  ;; Normal mode bindings for quick avy jump
+  (general-define-key
+   :states 'normal
+   :keymaps 'override
+   "s" #'avy-goto-char-timer
+   "S" #'avy-goto-line)
+
   (general-define-key
    :states '(normal visual insert)
    :prefix "SPC"
@@ -307,22 +337,31 @@
    "fo" '(helm-find-files  :which-key "open file")
    "fr" '(recentf-open :which-key "recent files")
 
-   "b"  '(:ignore f :which-key "buffer")
+   "b"  '(:ignore b :which-key "buffer")
    "bo" '(evil-buffer :which-key "other buffer")
    "bb" '(helm-mini :which-key "other buffer")
    "bd" '(kill-buffer :which-key "kill buffer")
    "bf" '(delete-other-windows :which-key "Fullscreen buffer")
    "bc" '(company-complete :which-key "Invoke completion")
+   "br" '(lsp-format-region :which-key "Lsp format region")
 
    "h" '(:ignore fh :which-key "hunks")
    "hn" '(diff-hl-next-hunk  :which-key "next hunk")
 
    "*" '(rg-menu  :which-key "project-wide grep")
 
-   "g"  '(:ignore f :which-key "global")
+   "g"  '(:ignore g :which-key "global")
    "gh" '(highlight-symbol-at-point :which-key "highlight point")
    "gu" '(unhighlight-regexp :which-key "unhighlight phrase")
    "gf" '(highlight-regexp '"[a-z].*(" :which-key "Highlight Functions")
+
+   "j"  '(:ignore j :which-key "jump")
+   "jc" '(avy-goto-char-timer :which-key "go to char")
+   "jC" '(avy-goto-char-2     :which-key "go to 2-char")
+   "jl" '(avy-goto-line       :which-key "go to line")
+   "jw" '(avy-goto-word-1     :which-key "go to word")
+   "js" '(avy-goto-subword-0  :which-key "go to subword")
+
    ))
 
 ;; ==========================================================================
@@ -349,32 +388,104 @@
 ;; load breg lens
 ;; (load-file "~/my_bigstore/alternate_home/emacs_configs/lsp-emacs/breglens.el")
 
+;; ==========================================================================
+;;                avy
+;; ==========================================================================
+
+(use-package avy
+  :ensure t
+  :config
+  ;; Optional tweaks
+  (setq avy-background t) ;; dim background while jumping
+  (setq avy-style 'at-full) ;; visual style for overlays
+
+  ;; Bind `s` in evil normal state to `avy-goto-char-timer`
+  (with-eval-after-load 'evil
+    (define-key evil-normal-state-map (kbd "s") #'avy-goto-char-timer)
+    (define-key evil-normal-state-map (kbd "S") #'avy-goto-line)))
+
+;; ==========================================================================
+
+;; ==========================================================================
+;;                Setup compilation buffer to show ansi colors
+;; ==========================================================================
+
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region (point-min) (point-max))))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 
-; (custom-set-variables
-;  ;; custom-set-variables was added by Custom.
-;  ;; If you edit it by hand, you could mess it up, so be careful.
-;  ;; Your init file should contain only one such instance.
-;  ;; If there is more than one, they won't work right.
-;  '(custom-safe-themes
-;    '("13096a9a6e75c7330c1bc500f30a8f4407bd618431c94aeab55c9855731a95e1" "014cb63097fc7dbda3edf53eb09802237961cbb4c9e9abd705f23b86511b0a69" "e8bd9bbf6506afca133125b0be48b1f033b1c8647c628652ab7a2fe065c10ef0" "8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" "48042425e84cd92184837e01d0b4fe9f912d875c43021c3bcb7eeb51f1be5710" "88f7ee5594021c60a4a6a1c275614103de8c1435d6d08cc58882f920e0cec65e" default))
-;  '(nil nil t)
-;  '(package-selected-packages
-;    '(evil-surround counsel-etags rg ripgrep sr-speedbar git-link dape esup general lsp-pyright lsp-mode yasnippet lsp-treemacs helm-lsp projectile hydra flycheck company avy which-key helm-xref dap-mode evil magit deadgrep doom-themes pyvenv python-black)))
-; (custom-set-faces
-;  ;; custom-set-faces was added by Custom.
-;  ;; If you edit it by hand, you could mess it up, so be careful.
-;  ;; Your init file should contain only one such instance.
-;  ;; If there is more than one, they won't work right.
-;  )
+
+;; ==========================================================================
+;;                Fixing compilation path when using berg
+;; ==========================================================================
+
+(defvar my-bad-path-prefixes
+  '("/workarea/src" "/workarea/temp" "/workarea/dev" "/tmp/tsoxomspub-1.305.0")
+  "List of bad path prefixes to replace with the correct project root.")
+
+(defun my-rewrite-paths-to-project-root ()
+  "Rewrite incorrect paths in compile buffer to use actual Projectile project root."
+  (let ((inhibit-read-only t)
+        (project-root (directory-file-name (or (projectile-project-root) "")))) ;; remove trailing /
+    (when (and project-root (not (string= project-root "")))
+      (save-excursion
+        (goto-char compilation-filter-start)
+        (dolist (bad-prefix my-bad-path-prefixes)
+          (let ((regexp (concat (regexp-quote bad-prefix) "/\\(.*?\\)\\(:[0-9]+\\)")))
+            (while (re-search-forward regexp (point-max) t)
+              (replace-match (format "%s/\\1\\2" project-root) nil nil))))))))
+
+(add-hook 'compilation-filter-hook #'my-rewrite-paths-to-project-root)
+
+;; ==========================================================================
+;;                Reverting all buffers
+;; ==========================================================================
+
+(defun revert-all-no-confirm ()
+  "Revert all file buffers, without confirmation.
+Buffers visiting files that no longer exist are ignored.
+Files that are not readable (including do not exist) are ignored.
+Other errors while reverting a buffer are reported only as messages."
+  (interactive)
+  (let (file)
+    (dolist (buf  (buffer-list))
+      (setq file  (buffer-file-name buf))
+      (when (and file  (file-readable-p file))
+        (with-current-buffer buf
+          (with-demoted-errors "Error: %S" (revert-buffer t t)))))))
+
+;; ==========================================================================
+;;                UI Beatification
+;; ==========================================================================
+
+(use-package vscode-dark-plus-theme
+  :ensure t
+  :config
+  (load-theme 'vscode-dark-plus t))
+
+(set-face-attribute 'default nil
+                    :font "Fira Code Retina"
+                    :height 120)
+
+
+
+;; ==========================================================================
+;; ==========================================================================
+;; ==========================================================================
+;; ==========================================================================
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("13096a9a6e75c7330c1bc500f30a8f4407bd618431c94aeab55c9855731a95e1" "8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" "ffafb0e9f63935183713b204c11d22225008559fa62133a69848835f4f4a758c" "48042425e84cd92184837e01d0b4fe9f912d875c43021c3bcb7eeb51f1be5710" "4594d6b9753691142f02e67b8eb0fda7d12f6cc9f1299a49b819312d6addad1d" default))
- '(package-selected-packages '(ripgrep yasnippet flycheck hydra)))
+   '("0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" "13096a9a6e75c7330c1bc500f30a8f4407bd618431c94aeab55c9855731a95e1" "8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098" "ffafb0e9f63935183713b204c11d22225008559fa62133a69848835f4f4a758c" "48042425e84cd92184837e01d0b4fe9f912d875c43021c3bcb7eeb51f1be5710" "4594d6b9753691142f02e67b8eb0fda7d12f6cc9f1299a49b819312d6addad1d" default))
+ '(package-selected-packages
+   '(vscode-dark-plus-theme rg general git-link helm-xref dap-mode python-black pyvenv company which-key diff-hl lsp-pyright helm-lsp lsp-mode evil-surround evil-commentary evil deadgrep magit doom-themes ace-window sr-speedbar counsel-etags projectile ripgrep yasnippet flycheck hydra)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
